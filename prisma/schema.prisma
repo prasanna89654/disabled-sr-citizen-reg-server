@@ -1,0 +1,209 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum local_level_type {
+  vdc
+  municipality
+  sub_metropolitan
+  metropolitan
+}
+
+enum blood_group {
+  A_Positive
+  A_Negative
+  B_Positive
+  B_Negative
+  AB_Positive
+  AB_Negative
+  O_Positive
+  O_Negative
+}
+
+enum disability_level {
+  full
+  severe
+  medium
+  normal
+}
+
+model Local {
+  id             Int              @id @default(autoincrement())
+  district_id    Int
+  nepali_name    String           @unique
+  english_name   String           @unique
+  type           local_level_type
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  district       District         @relation(fields: [district_id], references: [id], onDelete: Cascade)
+  certifier      Certifier[]
+  disable        Disable[]
+  senior_citizen Senior_Citizen[]
+
+  @@map("local_levels")
+}
+
+model State {
+  id             Int              @id @default(autoincrement())
+  nepali_name    String           @unique
+  english_name   String           @unique
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  district       District[]
+  disable        Disable[]
+  senior_citizen Senior_Citizen[]
+
+  @@map("states")
+}
+
+model District {
+  id             Int              @id @default(autoincrement())
+  state_id       Int
+  nepali_name    String           @unique
+  english_name   String           @unique
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  state          State            @relation(fields: [state_id], references: [id], onDelete: Cascade)
+  local          Local[]
+  disable        Disable[]
+  senior_citizen Senior_Citizen[]
+
+  @@map("districts")
+}
+
+model Role {
+  id           Int      @id @unique @default(autoincrement())
+  nepali_name  String   @unique
+  english_name String   @unique
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  user         User[]
+
+  @@map("roles")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  role_id    Int?
+  name       String
+  email      String   @unique
+  mobile     String   @unique
+  password   String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  role       Role?    @relation(fields: [role_id], references: [id], onDelete: SetNull)
+
+  @@map("users")
+}
+
+model Certifier {
+  id             Int      @id @default(autoincrement())
+  local_level_id Int
+  nepali_name    String
+  english_name   String
+  post_nepali    String
+  post_english   String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  local          Local    @relation(fields: [local_level_id], references: [id], onDelete: Cascade)
+
+  @@map("certifiers")
+}
+
+model Gender {]
+  id             Int              @id @default(autoincrement())
+  nepali_name    String           @unique
+  english_name   String           @unique
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  disable        Disable[]
+  senior_citizen Senior_Citizen[]
+
+  @@map("genders")
+}
+
+model Disability_Type {
+  id           Int       @id @default(autoincrement())
+  nepali_name  String    @unique
+  english_name String    @unique
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  disable      Disable[]
+
+  @@map("disability_types")
+}
+
+model Disable {
+  id                              Int              @id @default(autoincrement())
+  gender_id                       Int
+  state_id                        Int
+  district_id                     Int
+  local_level_id                  Int
+  disability_type_id              Int
+  nepali_name                     String
+  english_name                    String
+  dob_ad                          DateTime
+  dob_bs                          String
+  age                             Int
+  blood_group                     blood_group
+  ward                            Int
+  guardian_name_nepali            String
+  guardian_name_english           String
+  is_adult                        Boolean
+  citizenship_no                  String?
+  citizenship_district_id         Int?
+  citizenship_issued_date_nepali  String?
+  citizenship_issued_date_english DateTime?
+  disability_level                disability_level
+  image_url                       String?
+  created_at                      DateTime         @default(now())
+  updated_at                      DateTime         @updatedAt
+  gender                          Gender           @relation(fields: [gender_id], references: [id], onDelete: Cascade)
+  state                           State            @relation(fields: [state_id], references: [id], onDelete: Cascade)
+  district                        District         @relation(fields: [district_id], references: [id], onDelete: Cascade)
+  local                           Local            @relation(fields: [local_level_id], references: [id], onDelete: Cascade)
+  disability_type                 Disability_Type  @relation(fields: [disability_type_id], references: [id], onDelete: Cascade)
+
+  @@map("disables")
+}
+
+model Senior_Citizen {
+  id                              Int         @id @default(autoincrement())
+  gender_id                       Int
+  state_id                        Int
+  district_id                     Int
+  local_level_id                  Int
+  name                            String
+  street                          String
+  dob_ad                          DateTime
+  dob_bs                          String
+  age                             Int
+  blood_group                     blood_group
+  citizenship_no                  String
+  citizenship_district_id         Int
+  citizenship_issued_date_nepali  String
+  citizenship_issued_date_english DateTime
+  spouse_name                     String?
+  facilities                      String?
+  contact_person_name             String?
+  contact_person_address          String?
+  certificate_no                  String?
+  home_care_name                  String?
+  disease                         String?
+  medicine                        String?
+  image_url                       String?
+  created_at                      DateTime    @default(now())
+  updated_at                      DateTime    @updatedAt
+  gender                          Gender      @relation(fields: [gender_id], references: [id], onDelete: Cascade)
+  state                           State       @relation(fields: [state_id], references: [id], onDelete: Cascade)
+  district                        District    @relation(fields: [district_id], references: [id], onDelete: Cascade)
+  local                           Local       @relation(fields: [local_level_id], references: [id], onDelete: Cascade)
+
+  @@map("senior_citizens")
+}

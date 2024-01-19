@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  mysql-disability:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: disability
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-disability-data:/var/lib/mysql
+    networks:
+      - disability
+    container_name: mysql-disability
+
+  disability:
+    build:
+      context: .
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    networks:
+      - disability
+    container_name: disability
+
+networks:
+  disability:
+    driver: bridge
+
+volumes:
+  mysql-disability-data: {}
